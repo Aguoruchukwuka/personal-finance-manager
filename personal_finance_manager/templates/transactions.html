@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Transactions{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Transactions</h1>
+    <a href="{{ url_for('add_transaction') }}" class="btn-primary btn-small">+ Add Transaction</a>
+</div>
+
+<form method="GET" class="filter-bar">
+    <select name="category_id" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for c in categories %}
+        <option value="{{ c.id }}" {% if selected_category == c.id %}selected{% endif %}>{{ c.name }}</option>
+        {% endfor %}
+    </select>
+    <select name="type" onchange="this.form.submit()">
+        <option value="">All Types</option>
+        <option value="income" {% if selected_type == 'income' %}selected{% endif %}>Income</option>
+        <option value="expense" {% if selected_type == 'expense' %}selected{% endif %}>Expense</option>
+    </select>
+</form>
+
+{% if transactions %}
+<table class="simple-table full-width">
+    <thead>
+        <tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for t in transactions %}
+        <tr>
+            <td>{{ t.date.strftime("%Y-%m-%d") }}</td>
+            <td><span class="tag tag-{{ t.type }}">{{ t.type }}</span></td>
+            <td>{{ t.category.name if t.category else "Uncategorized" }}</td>
+            <td>{{ t.description or "—" }}</td>
+            <td>₦{{ "%.2f"|format(t.amount) }}</td>
+            <td class="actions">
+                <a href="{{ url_for('edit_transaction', transaction_id=t.id) }}">Edit</a>
+                <form method="POST" action="{{ url_for('delete_transaction', transaction_id=t.id) }}" onsubmit="return confirm('Delete this transaction?');">
+                    <button type="submit" class="btn-link btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-state">No transactions match your filters. <a href="{{ url_for('add_transaction') }}">Add one</a>.</p>
+{% endif %}
+{% endblock %}

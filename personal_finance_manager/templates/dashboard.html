@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="summary-cards">
+    <div class="card card-income">
+        <span class="card-label">Total Income</span>
+        <span class="card-value">₦{{ "%.2f"|format(total_income) }}</span>
+    </div>
+    <div class="card card-expense">
+        <span class="card-label">Total Expenses</span>
+        <span class="card-value">₦{{ "%.2f"|format(total_expense) }}</span>
+    </div>
+    <div class="card {{ 'card-positive' if balance >= 0 else 'card-negative' }}">
+        <span class="card-label">Balance</span>
+        <span class="card-value">₦{{ "%.2f"|format(balance) }}</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="panel">
+        <h2>Spending by Category</h2>
+        {% if category_totals %}
+        <table class="simple-table">
+            <thead><tr><th>Category</th><th>Amount</th><th></th></tr></thead>
+            <tbody>
+            {% set max_val = category_totals.values()|max %}
+            {% for name, amount in category_totals.items()|sort(attribute='1', reverse=true) %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>₦{{ "%.2f"|format(amount) }}</td>
+                    <td class="bar-cell">
+                        <div class="bar" style="width: {{ (amount / max_val * 100) if max_val else 0 }}%;"></div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">No expenses recorded yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <h2>Recent Transactions</h2>
+        {% if recent_transactions %}
+        <table class="simple-table">
+            <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th></tr></thead>
+            <tbody>
+            {% for t in recent_transactions %}
+                <tr>
+                    <td>{{ t.date.strftime("%Y-%m-%d") }}</td>
+                    <td><span class="tag tag-{{ t.type }}">{{ t.type }}</span></td>
+                    <td>{{ t.category.name if t.category else "Uncategorized" }}</td>
+                    <td>₦{{ "%.2f"|format(t.amount) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">No transactions yet. <a href="{{ url_for('add_transaction') }}">Add one</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Monthly Report</h1>
+
+<form method="GET" class="filter-bar">
+    <label for="month">Month</label>
+    <select id="month" name="month" onchange="this.form.submit()">
+        {% for m in available_months %}
+        <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="summary-cards">
+    <div class="card card-income">
+        <span class="card-label">Income</span>
+        <span class="card-value">₦{{ "%.2f"|format(total_income) }}</span>
+    </div>
+    <div class="card card-expense">
+        <span class="card-label">Expenses</span>
+        <span class="card-value">₦{{ "%.2f"|format(total_expense) }}</span>
+    </div>
+    <div class="card {{ 'card-positive' if net >= 0 else 'card-negative' }}">
+        <span class="card-label">Net</span>
+        <span class="card-value">₦{{ "%.2f"|format(net) }}</span>
+    </div>
+</div>
+
+<div class="panel">
+    <h2>Expense Breakdown by Category</h2>
+    {% if category_breakdown %}
+    <table class="simple-table">
+        <thead><tr><th>Category</th><th>Amount</th><th>% of Expenses</th></tr></thead>
+        <tbody>
+        {% for name, amount in category_breakdown.items()|sort(attribute='1', reverse=true) %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>₦{{ "%.2f"|format(amount) }}</td>
+                <td>{{ "%.1f"|format((amount / total_expense * 100) if total_expense else 0) }}%</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">No expenses recorded for this month.</p>
+    {% endif %}
+</div>
+
+<div class="panel">
+    <h2>All Transactions — {{ month }}</h2>
+    {% if transactions %}
+    <table class="simple-table full-width">
+        <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+        <tbody>
+        {% for t in transactions %}
+            <tr>
+                <td>{{ t.date.strftime("%Y-%m-%d") }}</td>
+                <td><span class="tag tag-{{ t.type }}">{{ t.type }}</span></td>
+                <td>{{ t.category.name if t.category else "Uncategorized" }}</td>
+                <td>{{ t.description or "—" }}</td>
+                <td>₦{{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">Nothing recorded this month.</p>
+    {% endif %}
+</div>
+{% endblock %}
